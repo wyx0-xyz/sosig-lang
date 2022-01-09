@@ -1,8 +1,13 @@
-module Language.Sosig.Parser where
+module Language.Sosig.Parser (parseStatement) where
 
+import Control.Monad (replicateM_)
 import qualified Language.Sosig.Lexer as Lexer
 import Text.Parsec (between, char, many, string, try, (<|>))
 import Text.Parsec.String (Parser)
+
+data Statement
+  = Def String [Type] Type Expr
+  deriving (Eq, Show)
 
 data Expr
   = Integer Integer
@@ -69,3 +74,22 @@ parseTList = between (char '[') (char ']') parseType
 
 parseType :: Parser Type
 parseType = parseTInteger <|> parseTDouble <|> parseTChar <|> parseTString <|> parseTBoolean <|> parseTList
+
+parseSignature :: Parser ([Type], Type)
+parseSignature = do
+  parameters <- between (Lexer.symbol ":<") (Lexer.symbol ">:") (many $ Lexer.lexeme parseType)
+  output <- parseType
+  return (parameters, output)
+
+parseDef :: Parser Statement
+parseDef = do
+  name <- Lexer.lexeme Lexer.identifier
+  (parameters, output) <- parseSignature
+  char '\n'
+  Lexer.symbol name
+  replicateM_ (length parameters) (Lexer.lexeme Lexer.identifier)
+  Lexer.symbol "="
+  Def name parameters output <$> parseExpr
+
+parseStatement :: Parser Statement
+parseStatement = parseDef
