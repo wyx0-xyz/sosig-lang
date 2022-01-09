@@ -70,7 +70,7 @@ parseTBoolean :: Parser Type
 parseTBoolean = string "Boolean" >> return TBoolean
 
 parseTList :: Parser Type
-parseTList = between (char '[') (char ']') parseType
+parseTList = TList <$> between (char '[') (char ']') parseType
 
 parseType :: Parser Type
 parseType = parseTInteger <|> parseTDouble <|> parseTChar <|> parseTString <|> parseTBoolean <|> parseTList
