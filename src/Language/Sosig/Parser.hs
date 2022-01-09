@@ -62,7 +62,7 @@ parseTString :: Parser Type
 parseTString = string "String" >> return TString
 
 parseTBoolean :: Parser Type
-parseTBoolean = string "Booolean" >> return TBoolean
+parseTBoolean = string "Boolean" >> return TBoolean
 
 parseTList :: Parser Type
 parseTList = between (char '[') (char ']') parseType
