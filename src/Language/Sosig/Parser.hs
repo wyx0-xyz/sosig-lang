@@ -1,7 +1,7 @@
 module Language.Sosig.Parser where
 
 import qualified Language.Sosig.Lexer as Lexer
-import Text.Parsec (between, many, string, try, (<|>))
+import Text.Parsec (between, char, many, string, try, (<|>))
 import Text.Parsec.String (Parser)
 
 data Expr
@@ -12,7 +12,16 @@ data Expr
   | Boolean Bool
   | Identifier String
   | List [Expr]
-  deriving (Show)
+  deriving (Eq, Show)
+
+data Type
+  = TInteger
+  | TDouble
+  | TChar
+  | TString
+  | TBoolean
+  | TList Type
+  deriving (Eq, Show)
 
 parseInteger :: Parser Expr
 parseInteger = Integer <$> Lexer.integer
@@ -39,3 +48,24 @@ parseList = Lexer.brackets $ List <$> many parseExpr
 
 parseExpr :: Parser Expr
 parseExpr = try parseDouble <|> parseInteger <|> parseChar <|> parseString <|> parseBoolean <|> parseIdentifier <|> parseList
+
+parseTInteger :: Parser Type
+parseTInteger = string "Integer" >> return TInteger
+
+parseTDouble :: Parser Type
+parseTDouble = string "Double" >> return TDouble
+
+parseTChar :: Parser Type
+parseTChar = string "Char" >> return TChar
+
+parseTString :: Parser Type
+parseTString = string "String" >> return TString
+
+parseTBoolean :: Parser Type
+parseTBoolean = string "Booolean" >> return TBoolean
+
+parseTList :: Parser Type
+parseTList = between (char '[') (char ']') parseType
+
+parseType :: Parser Type
+parseType = parseTInteger <|> parseTDouble <|> parseTChar <|> parseTString <|> parseTBoolean <|> parseTList
