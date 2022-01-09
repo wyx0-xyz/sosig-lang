@@ -1,0 +1,40 @@
+name:                sosig-lang
+version:             0.1.0.0
+github:              "wyx0-xyz/sosig-lang"
+license:             BSD3
+author:              "wyx0-xyz"
+maintainer:          "nathan@trioleyre.fr"
+copyright:           "2022 wyx0-xyz"
+
+extra-source-files:
+- README.md
+
+description:         Please see the README on GitHub at <https://github.com/githubuser/sosig-lang#readme>
+
+dependencies:
+- base >= 4.7 && < 5
+
+library:
+  source-dirs: src
+
+executables:
+  sosig-lang-exe:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - sosig-lang
+
+tests:
+  sosig-lang-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - sosig-lang
