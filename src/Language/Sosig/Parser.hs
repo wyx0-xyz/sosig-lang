@@ -1,4 +1,4 @@
-module Language.Sosig.Parser (parseStatement) where
+module Language.Sosig.Parser where
 
 import Control.Monad (replicateM_)
 import qualified Language.Sosig.Lexer as Lexer
@@ -17,6 +17,7 @@ data Expr
   | Boolean Bool
   | Identifier String
   | List [Expr]
+  | Void
   deriving (Eq, Show)
 
 data Type
@@ -26,7 +27,18 @@ data Type
   | TString
   | TBoolean
   | TList Type
-  deriving (Eq, Show)
+  | TVoid
+  deriving Eq
+
+instance Show Type where
+  show TInteger = "Integer"
+  show TDouble = "Double"
+  show TChar = "Char"
+  show TString = "String"
+  show TBoolean = "Boolean"
+  show (TList t) = "[" ++ show t ++ "]"
+  show (TVar name) = name
+  show TVoid = "Void"
 
 parseInteger :: Parser Expr
 parseInteger = Integer <$> Lexer.integer
@@ -51,8 +63,11 @@ parseIdentifier = Identifier <$> Lexer.identifier
 parseList :: Parser Expr
 parseList = Lexer.brackets $ List <$> many parseExpr
 
+parseVoid :: Parser Expr
+parseVoid = string "()" >> return Void
+
 parseExpr :: Parser Expr
-parseExpr = try parseDouble <|> parseInteger <|> parseChar <|> parseString <|> parseBoolean <|> parseIdentifier <|> parseList
+parseExpr = try parseDouble <|> parseInteger <|> parseChar <|> parseString <|> parseBoolean <|> parseIdentifier <|> parseList <|> parseVoid
 
 parseTInteger :: Parser Type
 parseTInteger = string "Integer" >> return TInteger
@@ -72,8 +87,11 @@ parseTBoolean = string "Boolean" >> return TBoolean
 parseTList :: Parser Type
 parseTList = TList <$> between (char '[') (char ']') parseType
 
+parseTVoid :: Parser Type
+parseTVoid = string "Void" >> return TVoid
+
 parseType :: Parser Type
-parseType = parseTInteger <|> parseTDouble <|> parseTChar <|> parseTString <|> parseTBoolean <|> parseTList
+parseType = parseTInteger <|> parseTDouble <|> parseTChar <|> parseTString <|> parseTBoolean <|> parseTList <|> parseTVoid
 
 parseSignature :: Parser ([Type], Type)
 parseSignature = do
