@@ -15,7 +15,8 @@ data Expr
   | Char Char
   | String String
   | Boolean Bool
-  | Identifier String
+  | Variable String
+  | Application String [Expr]
   | List [Expr]
   | Void
   deriving (Eq, Show)
@@ -37,7 +38,6 @@ instance Show Type where
   show TString = "String"
   show TBoolean = "Boolean"
   show (TList t) = "[" ++ show t ++ "]"
-  show (TVar name) = name
   show TVoid = "Void"
 
 parseInteger :: Parser Expr
@@ -57,8 +57,14 @@ parseBoolean = do
   boolean <- string "True" <|> string "False"
   return $ Boolean $ boolean == "True"
 
-parseIdentifier :: Parser Expr
-parseIdentifier = Identifier <$> Lexer.identifier
+parseVariable :: Parser Expr
+parseVariable = Variable <$> Lexer.identifier
+
+parseApplication :: Parser Expr
+parseApplication = do
+  name <- Lexer.identifier
+  parameters <- Lexer.parens $ many $ Lexer.lexeme parseExpr
+  return $ Application name parameters
 
 parseList :: Parser Expr
 parseList = Lexer.brackets $ List <$> many parseExpr
@@ -67,7 +73,7 @@ parseVoid :: Parser Expr
 parseVoid = string "()" >> return Void
 
 parseExpr :: Parser Expr
-parseExpr = try parseDouble <|> parseInteger <|> parseChar <|> parseString <|> parseBoolean <|> parseIdentifier <|> parseList <|> parseVoid
+parseExpr = try parseDouble <|> parseInteger <|> parseChar <|> parseString <|> parseBoolean <|> try parseApplication <|> parseVariable <|> parseList <|> parseVoid
 
 parseTInteger :: Parser Type
 parseTInteger = string "Integer" >> return TInteger
